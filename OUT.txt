@@ -1,0 +1,7 @@
+Name: CSS (WENTIAN)
+GMST= 0.824501
+Position in  ECI [km]: { -4810.85, 4505.12, 1484.99 }
+Position in ECEF [km]: { 41.5075, 6590.8, 1484.99 }
+Position in LLA [deg]: { 12.6972, 89.6392 }
+Distance to the ground: 379.051 km
+Distance to MIEM = 6452.26km
