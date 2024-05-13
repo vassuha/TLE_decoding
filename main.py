@@ -5,8 +5,8 @@ from mpl_toolkits.basemap import Basemap
 import subprocess
 import time
 
-def call_cpp_program():
-    result = subprocess.run(['./Kursach/cmake-build-debug/Kursach.exe', 'arg1', 'arg2'], stdout=subprocess.PIPE)
+def call_cpp_program(arg):
+    result = subprocess.run(['./Kursach/cmake-build-debug/Kursach.exe', arg], stdout=subprocess.PIPE)
     #result = subprocess.run(['./Test_project/cmake-build-debug/Test_project.exe', 'arg1', 'arg2'], stdout=subprocess.PIPE)
     output_text = result.stdout.decode('utf-8')
 
@@ -24,7 +24,7 @@ def read_satellite_data(output_lines):
     # with open(file_path, 'r') as file:
     #     data = file.readlines()
     #     print(data)
-
+    print(output_lines)
     satellite_data = {}
     satellite_name = None
     for line in output_lines:
@@ -52,7 +52,7 @@ def read_satellite_data(output_lines):
 
 
 def plot_satellite_location(satellite_data, satellite_name):
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(10, 8), facecolor='black')
     plt.title(f'Satellite Location: {satellite_name}')
     lla_position = satellite_data[satellite_name]['LLA']
     lon, lat = lla_position[1], lla_position[0]
@@ -65,7 +65,6 @@ def plot_satellite_location(satellite_data, satellite_name):
     # plt.legend()
     plt.show()
 
-
 def select_file():
     file_path = filedialog.askopenfilename()
     if file_path:
@@ -74,20 +73,27 @@ def select_file():
         return None
 
 
+def update_satellite_location():
+    global satellite_data
+    global satellite_name
+    #satellite_data = call_cpp_program("listAll")
+    if satellite_name:
+        plot_satellite_location(satellite_data, satellite_name)
+    root.after(7000, update_satellite_location)  # Вызываем эту же функцию снова через 1000 миллисекунд (1 секунда)
+
 def on_submit():
     global satellite_data
     global entry
-
+    global satellite_name
     satellite_name = entry.get()
     if satellite_name:
         plot_satellite_location(satellite_data, satellite_name)
 
-
 def main():
-
     global satellite_data
     global entry
-
+    global root
+    global satellite_name  # Добавляем satellite_name в глобальные переменные
     root = tk.Tk()
     root.title('Satellite Location Viewer')
     root.geometry('300x200')
@@ -104,12 +110,12 @@ def main():
     file_button = tk.Button(root, text='Select File', command=select_file)
     file_button.pack()
 
+    update_satellite_location()  # Вызываем функцию обновления положения спутника
     root.mainloop()
 
-
 if __name__ == "__main__":
-    output_lines = call_cpp_program()
-
+    output_lines = call_cpp_program("listAll")
     file_path = 'OUT.txt'
     satellite_data = read_satellite_data(output_lines)
+    satellite_name = None
     main()
