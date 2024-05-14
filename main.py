@@ -1,36 +1,29 @@
 import tkinter as tk
 from tkinter import filedialog
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import cartopy.io.img_tiles as cimgt
 import subprocess
-import time
+
 
 def call_cpp_program(arg):
-    result = subprocess.run(['./Kursach/cmake-build-debug/Kursach.exe', arg], stdout=subprocess.PIPE)
-    #result = subprocess.run(['./Test_project/cmake-build-debug/Test_project.exe', 'arg1', 'arg2'], stdout=subprocess.PIPE)
-    output_text = result.stdout.decode('utf-8')
+    try:
+        result = subprocess.run(['./Kursach/cmake-build-debug/Kursach.exe', arg], stdout=subprocess.PIPE, check=True)
+        output_text = result.stdout.decode('utf-8')
+        return output_text.split('\n')
+    except subprocess.CalledProcessError as e:
+        print(f"Error calling C++ program: {e}")
+        return []
 
-    # Разбиваем вывод программы на строки
-    output_lines = output_text.split('\n')
-
-    # Выводим строки
-    # print("output")
-    # for line in output_lines:
-    #     print(line)
-    # print("end output")
-    return output_lines
 
 def read_satellite_data(output_lines):
-    # with open(file_path, 'r') as file:
-    #     data = file.readlines()
-    #     print(data)
     satellite_data = {}
     satellite_name = None
     for line in output_lines:
         if line.startswith('Name:'):
             satellite_name = line.split(':')[1].strip()
             satellite_data[satellite_name] = {'Trajectory': []}
-            print(satellite_name)
         elif satellite_name:
             if line.startswith('Position in  ECI'):
                 eci_position = line.split(':')[1].strip().strip('{}').split(',')
@@ -54,74 +47,59 @@ def read_satellite_data(output_lines):
     return satellite_data
 
 
-# def plot_satellite_location(satellite_data, satellite_name):
-#     plt.figure(figsize=(10, 8), facecolor='black')
-#     plt.title(f'Satellite Location: {satellite_name}')
-#     lla_position = satellite_data[satellite_name]['LLA']
-#     lon, lat = lla_position[1], lla_position[0]
-#     m = Basemap(projection='ortho', lat_0=lat-10, lon_0=lon-10)
-#     m.drawcoastlines()
-#
-#     x, y = m(lon, lat)
-#     m.plot(x, y, 'ro', label='Satellite Location')
-#     m.bluemarble()
-#     # plt.legend()
-#     plt.show()
-#
-
 def plot_satellite_location(satellite_data, satellite_name):
     plt.figure(figsize=(10, 8), facecolor='black')
-    plt.title(f'Satellite Location: {satellite_name}', color='w')
+    ax = plt.axes(projection=ccrs.Orthographic(central_longitude=satellite_data[satellite_name]['LLA'][1],
+                                               central_latitude=satellite_data[satellite_name]['LLA'][0]))
+
+    # Добавление Blue Marble изображения в качестве фона
+    ax.stock_img()
+    # ax.add_image(cimgt.OSM(), 0)
+
+    img = plt.imread('bluemarble.png')
+    img_extent = (-180, 180, -90, 90)
+    ax.imshow(img, origin='upper', extent=img_extent, transform=ccrs.PlateCarree())
+
     lla_position = satellite_data[satellite_name]['LLA']
     lon, lat = lla_position[1], lla_position[0]
-    m = Basemap(projection='ortho', lat_0=lat, lon_0=lon)
-    m.drawcoastlines()
-    x, y = m(lon, lat)
-    m.plot(x, y, 'ro', label='Satellite Location')
+    ax.plot(lon, lat, 'ro', transform=ccrs.Geodetic(), label='Satellite Location')
 
     if 'Trajectory' in satellite_data[satellite_name]:
         trajectory = satellite_data[satellite_name]['Trajectory']
         lons = [pos[1] for pos in trajectory]
         lats = [pos[0] for pos in trajectory]
-        x, y = m(lons, lats)
-        m.plot(x, y, marker=None, color='r')
-        # m.plot(x, y, 'ro')
+        ax.plot(lons, lats, 'r', transform=ccrs.Geodetic())
 
-    m.bluemarble()
+    plt.title(f'Satellite Location: {satellite_name}', color='white')
     plt.show()
-
-def select_file():
-    file_path = filedialog.askopenfilename()
-    if file_path:
-        return file_path
-    else:
-        return None
 
 
 def update_satellite_location():
     global satellite_data
     global satellite_name
-    satellite_data = read_satellite_data(call_cpp_program("listAll"))
+    output_lines = call_cpp_program("listAll")
+    satellite_data = read_satellite_data(output_lines)
     if satellite_name:
         plot_satellite_location(satellite_data, satellite_name)
-    root.after(1000, update_satellite_location)  # Вызываем эту же функцию снова через 1000 миллисекунд (1 секунда)
+    root.after(1000, update_satellite_location)
+
 
 def on_submit():
-    global satellite_data
-    global entry
     global satellite_name
     satellite_name = entry.get()
-    if satellite_name:
+    if satellite_name and satellite_name in satellite_data:
         plot_satellite_location(satellite_data, satellite_name)
+
 
 def update_satellite_data():
     call_cpp_program("update list")
+
 
 def main():
     global satellite_data
     global entry
     global root
-    global satellite_name  # Добавляем satellite_name в глобальные переменные
+    global satellite_name
     root = tk.Tk()
     root.title('Satellite Location Viewer')
     root.geometry('300x200')
@@ -138,12 +116,15 @@ def main():
     update_button = tk.Button(root, text='Update satellite data', command=update_satellite_data)
     update_button.pack()
 
-    update_satellite_location()  # Вызываем функцию обновления положения спутника
+    menu_bar = Menu(root)
+
+
+    update_satellite_location()
     root.mainloop()
+
 
 if __name__ == "__main__":
     output_lines = call_cpp_program("listAll")
-    file_path = 'OUT.txt'
     satellite_data = read_satellite_data(output_lines)
     satellite_name = None
     main()
