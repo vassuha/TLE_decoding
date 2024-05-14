@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="553f882b-e550-4ec8-84ba-f569d542329e" name="Changes" comment="Добавлено отображение траектории спутника и кнопка обновления TLE данных">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Kursach" beforeDir="false" afterPath="$PROJECT_DIR$/Kursach" afterDir="false" />
+    <list default="true" id="553f882b-e550-4ec8-84ba-f569d542329e" name="Changes" comment="Изменена библиотека отображения, улучшена производительность">
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -95,7 +92,7 @@
       <workItem from="1715419887511" duration="9364000" />
       <workItem from="1715505699913" duration="1833000" />
       <workItem from="1715667300877" duration="13635000" />
-      <workItem from="1715684844614" duration="1664000" />
+      <workItem from="1715684844614" duration="2000000" />
     </task>
     <task id="LOCAL-00001" summary="Добавлено отображение траектории спутника и кнопка обновления TLE данных">
       <option name="closed" value="true" />
@@ -105,7 +102,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715674947785</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Изменена библиотека отображения, улучшена производительность">
+      <option name="closed" value="true" />
+      <created>1715686853226</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1715686853226</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -113,9 +118,10 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Добавлено отображение траектории спутника и кнопка обновления TLE данных" />
-    <option name="LAST_COMMIT_MESSAGE" value="Добавлено отображение траектории спутника и кнопка обновления TLE данных" />
+    <MESSAGE value="Изменена библиотека отображения, улучшена производительность" />
+    <option name="LAST_COMMIT_MESSAGE" value="Изменена библиотека отображения, улучшена производительность" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/TLE_decoding$main.coverage" NAME="main Coverage Results" MODIFIED="1715685973481" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="D:\TLE_decoding" />
+    <SUITE FILE_PATH="coverage/TLE_decoding$main.coverage" NAME="main Coverage Results" MODIFIED="1715686859946" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="D:\TLE_decoding" />
   </component>
 </project>

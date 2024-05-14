@@ -116,9 +116,6 @@ def main():
     update_button = tk.Button(root, text='Update satellite data', command=update_satellite_data)
     update_button.pack()
 
-    menu_bar = Menu(root)
-
-
     update_satellite_location()
     root.mainloop()
 
