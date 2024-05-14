@@ -14,23 +14,22 @@ def call_cpp_program(arg):
     output_lines = output_text.split('\n')
 
     # Выводим строки
-    print("output")
-    for line in output_lines:
-        print(line)
-    print("end output")
+    # print("output")
+    # for line in output_lines:
+    #     print(line)
+    # print("end output")
     return output_lines
 
 def read_satellite_data(output_lines):
     # with open(file_path, 'r') as file:
     #     data = file.readlines()
     #     print(data)
-    print(output_lines)
     satellite_data = {}
     satellite_name = None
     for line in output_lines:
         if line.startswith('Name:'):
             satellite_name = line.split(':')[1].strip()
-            satellite_data[satellite_name] = {}
+            satellite_data[satellite_name] = {'Trajectory': []}
             print(satellite_name)
         elif satellite_name:
             if line.startswith('Position in  ECI'):
@@ -42,6 +41,10 @@ def read_satellite_data(output_lines):
             elif line.startswith('Position in LLA'):
                 lla_position = line.split(':')[1].strip().strip('{}').split(',')
                 satellite_data[satellite_name]['LLA'] = [float(coord.strip()) for coord in lla_position]
+            elif line.startswith('Trajectory in LLA'):
+                lla_position = line.split(':')[1].strip().strip('{}').split(',')
+                lla_coords = [float(coord.strip()) for coord in lla_position]
+                satellite_data[satellite_name]['Trajectory'].append(lla_coords)
             elif line.startswith('Distance to the ground'):
                 distance_to_ground = float(line.split(':')[1].strip().split()[0])
                 satellite_data[satellite_name]['Distance to the ground'] = distance_to_ground
@@ -51,18 +54,40 @@ def read_satellite_data(output_lines):
     return satellite_data
 
 
+# def plot_satellite_location(satellite_data, satellite_name):
+#     plt.figure(figsize=(10, 8), facecolor='black')
+#     plt.title(f'Satellite Location: {satellite_name}')
+#     lla_position = satellite_data[satellite_name]['LLA']
+#     lon, lat = lla_position[1], lla_position[0]
+#     m = Basemap(projection='ortho', lat_0=lat-10, lon_0=lon-10)
+#     m.drawcoastlines()
+#
+#     x, y = m(lon, lat)
+#     m.plot(x, y, 'ro', label='Satellite Location')
+#     m.bluemarble()
+#     # plt.legend()
+#     plt.show()
+#
+
 def plot_satellite_location(satellite_data, satellite_name):
     plt.figure(figsize=(10, 8), facecolor='black')
-    plt.title(f'Satellite Location: {satellite_name}')
+    plt.title(f'Satellite Location: {satellite_name}', color='w')
     lla_position = satellite_data[satellite_name]['LLA']
     lon, lat = lla_position[1], lla_position[0]
-    m = Basemap(projection='ortho', lat_0=lat-10, lon_0=lon-10)
+    m = Basemap(projection='ortho', lat_0=lat, lon_0=lon)
     m.drawcoastlines()
-
     x, y = m(lon, lat)
     m.plot(x, y, 'ro', label='Satellite Location')
+
+    if 'Trajectory' in satellite_data[satellite_name]:
+        trajectory = satellite_data[satellite_name]['Trajectory']
+        lons = [pos[1] for pos in trajectory]
+        lats = [pos[0] for pos in trajectory]
+        x, y = m(lons, lats)
+        m.plot(x, y, marker=None, color='r')
+        # m.plot(x, y, 'ro')
+
     m.bluemarble()
-    # plt.legend()
     plt.show()
 
 def select_file():
@@ -76,10 +101,10 @@ def select_file():
 def update_satellite_location():
     global satellite_data
     global satellite_name
-    #satellite_data = call_cpp_program("listAll")
+    satellite_data = read_satellite_data(call_cpp_program("listAll"))
     if satellite_name:
         plot_satellite_location(satellite_data, satellite_name)
-    root.after(7000, update_satellite_location)  # Вызываем эту же функцию снова через 1000 миллисекунд (1 секунда)
+    root.after(1000, update_satellite_location)  # Вызываем эту же функцию снова через 1000 миллисекунд (1 секунда)
 
 def on_submit():
     global satellite_data
@@ -88,6 +113,9 @@ def on_submit():
     satellite_name = entry.get()
     if satellite_name:
         plot_satellite_location(satellite_data, satellite_name)
+
+def update_satellite_data():
+    call_cpp_program("update list")
 
 def main():
     global satellite_data
@@ -107,8 +135,8 @@ def main():
     submit_button = tk.Button(root, text='Submit', command=on_submit)
     submit_button.pack()
 
-    file_button = tk.Button(root, text='Select File', command=select_file)
-    file_button.pack()
+    update_button = tk.Button(root, text='Update satellite data', command=update_satellite_data)
+    update_button.pack()
 
     update_satellite_location()  # Вызываем функцию обновления положения спутника
     root.mainloop()
