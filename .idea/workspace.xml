@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="553f882b-e550-4ec8-84ba-f569d542329e" name="Changes" comment="Добавлен выбор спутника из выпадающего меню">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Kursach" beforeDir="false" afterPath="$PROJECT_DIR$/Kursach" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Kursach/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Kursach/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -151,6 +149,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="Добавлен выбор спутника из выпадающего меню" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/TLE_decoding$main.coverage" NAME="main Coverage Results" MODIFIED="1715854495029" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="D:\TLE_decoding" />
+    <SUITE FILE_PATH="coverage/TLE_decoding$main.coverage" NAME="main Coverage Results" MODIFIED="1715866366242" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="D:\TLE_decoding" />
   </component>
 </project>
