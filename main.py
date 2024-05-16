@@ -1,8 +1,6 @@
 import tkinter as tk
-from tkinter import filedialog
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 import cartopy.io.img_tiles as cimgt
 import subprocess
 
@@ -54,7 +52,6 @@ def plot_satellite_location(satellite_data, satellite_name):
 
     # Добавление Blue Marble изображения в качестве фона
     ax.stock_img()
-    # ax.add_image(cimgt.OSM(), 0)
 
     img = plt.imread('bluemarble.png')
     img_extent = (-180, 180, -90, 90)
@@ -84,9 +81,9 @@ def update_satellite_location():
     root.after(1000, update_satellite_location)
 
 
-def on_submit():
+def on_option_change(*args):
     global satellite_name
-    satellite_name = entry.get()
+    satellite_name = selected_option.get()
     if satellite_name and satellite_name in satellite_data:
         plot_satellite_location(satellite_data, satellite_name)
 
@@ -97,21 +94,31 @@ def update_satellite_data():
 
 def main():
     global satellite_data
-    global entry
     global root
     global satellite_name
+    global selected_option
+
     root = tk.Tk()
     root.title('Satellite Location Viewer')
     root.geometry('300x200')
 
-    label = tk.Label(root, text='Enter Satellite Name:')
+    label = tk.Label(root, text='Select Satellite:')
     label.pack()
 
-    entry = tk.Entry(root)
-    entry.pack()
+    satellite_names = list(satellite_data.keys())
 
-    submit_button = tk.Button(root, text='Submit', command=on_submit)
-    submit_button.pack()
+    if not satellite_names:
+        label_no_data = tk.Label(root, text='No satellite data available.')
+        label_no_data.pack()
+        return
+
+    selected_option = tk.StringVar(root)
+    selected_option.set(satellite_names[0])  # Задание значения по умолчанию
+
+    option_menu = tk.OptionMenu(root, selected_option, *satellite_names)
+    option_menu.pack()
+
+    selected_option.trace('w', on_option_change)
 
     update_button = tk.Button(root, text='Update satellite data', command=update_satellite_data)
     update_button.pack()
@@ -122,6 +129,7 @@ def main():
 
 if __name__ == "__main__":
     output_lines = call_cpp_program("listAll")
+    print(output_lines)
     satellite_data = read_satellite_data(output_lines)
     satellite_name = None
     main()

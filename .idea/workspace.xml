@@ -5,7 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="553f882b-e550-4ec8-84ba-f569d542329e" name="Changes" comment="Изменена библиотека отображения, улучшена производительность">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Kursach" beforeDir="false" afterPath="$PROJECT_DIR$/Kursach" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Kursach/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Kursach/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/output.txt" beforeDir="false" afterPath="$PROJECT_DIR$/output.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -93,6 +97,9 @@
       <workItem from="1715505699913" duration="1833000" />
       <workItem from="1715667300877" duration="13635000" />
       <workItem from="1715684844614" duration="2000000" />
+      <workItem from="1715689153560" duration="1259000" />
+      <workItem from="1715848760326" duration="1156000" />
+      <workItem from="1715849937465" duration="540000" />
     </task>
     <task id="LOCAL-00001" summary="Добавлено отображение траектории спутника и кнопка обновления TLE данных">
       <option name="closed" value="true" />
@@ -122,6 +129,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="Изменена библиотека отображения, улучшена производительность" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/TLE_decoding$main.coverage" NAME="main Coverage Results" MODIFIED="1715686859946" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="D:\TLE_decoding" />
+    <SUITE FILE_PATH="coverage/TLE_decoding$main.coverage" NAME="main Coverage Results" MODIFIED="1715850481242" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="D:\TLE_decoding" />
   </component>
 </project>

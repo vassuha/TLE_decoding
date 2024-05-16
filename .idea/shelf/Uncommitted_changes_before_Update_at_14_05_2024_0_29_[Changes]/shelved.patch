@@ -1,0 +1,191 @@
+Index: Kursach/CMakeLists.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>cmake_minimum_required(VERSION 3.26)\r\nset(CMAKE_C_COMPILER gcc)\r\nset(CMAKE_CXX_COMPILER g++)\r\n\r\nproject(Kursach)\r\n\r\nset(CMAKE_CXX_STANDARD 17)\r\n\r\n# Укажите путь к папке с заголовочными файлами cURL\r\nset(CURL_INCLUDE_DIRS \"C:/curl/include\")\r\n\r\nfind_package(CURL REQUIRED)\r\ninclude_directories(${CURL_INCLUDE_DIRS})\r\n\r\nadd_executable(Kursach main.cpp)\r\n\r\n# Линковка с библиотекой cURL\r\ntarget_link_libraries(Kursach ${CURL_LIBRARIES})\r\n\r\n#target_include_directories(Kursach PRIVATE ${CMAKE_SOURCE_DIR}/sgp4)\r\n\r\n#target_link_libraries(Kursach PRIVATE path/to/sgp4/build/sgp4.lib)\r\n\r\n# Добавьте зависимость от библиотеки perturb\r\ninclude(FetchContent)\r\n\r\nFetchContent_Declare(\r\n        perturb\r\n        GIT_REPOSITORY \"https://github.com/gunvirranu/perturb\"\r\n)\r\n\r\n\r\nFetchContent_MakeAvailable(perturb)\r\n\r\n# Link perturb into your project\r\ntarget_link_libraries(Kursach perturb)\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Kursach/CMakeLists.txt b/Kursach/CMakeLists.txt
+--- a/Kursach/CMakeLists.txt	(revision d8a02dbc3495392475d147cdffa663cdcd8ae782)
++++ b/Kursach/CMakeLists.txt	(date 1715421094251)
+@@ -5,6 +5,7 @@
+ project(Kursach)
+ 
+ set(CMAKE_CXX_STANDARD 17)
++set(CMAKE_EXE_LINKER_FLAGS "-static")
+ 
+ # Укажите путь к папке с заголовочными файлами cURL
+ set(CURL_INCLUDE_DIRS "C:/curl/include")
+Index: Kursach/main.cpp
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>#include <iostream>\r\n#include <fstream>\r\n#include <string>\r\n#include <curl/curl.h>\r\n#include <vector>\r\n#include <perturb/perturb.hpp>\r\n#include <cmath>\r\n#include <chrono>\r\n\r\n\r\n#define PI 3.141592653589793\r\n\r\nusing namespace std;\r\nusing namespace perturb;\r\n\r\nstruct TLE {\r\n    string satelliteName;\r\n    string line1;\r\n    string line2;\r\n};\r\n\r\nvoid now(int &year, int &month, int &day, int &hour, int &min, int &sec) {\r\n    auto currentTimePoint = std::chrono::system_clock::now();\r\n    std::time_t currentTime = std::chrono::system_clock::to_time_t(currentTimePoint);\r\n\r\n    // Преобразование времени в структуру tm\r\n    std::tm *localTime = std::localtime(&currentTime);\r\n\r\n    year = localTime->tm_year + 1900;\r\n    month = localTime->tm_mon + 1;\r\n    day = localTime->tm_mday;\r\n    hour = localTime->tm_hour-3;\r\n    min = localTime->tm_min;\r\n    sec = localTime->tm_sec;\r\n\r\n    //Отладка!!!!!!!!!\r\n//    year = 2000;\r\n//    month = 5;\r\n//    day = 3;\r\n//    hour-=3;\r\n//    min =10;\r\n//    sec = 0;\r\n}\r\n\r\ndouble GMST(void){\r\n    int year, month, day, hour, min, sec;\r\n    now(year, month, day, hour, min, sec);\r\n\r\n    double dwhole = 367.0*year-int(7*(year+int((month+9)/12))/4)+int(275*month/9)+day-730531.5;\r\n    double dfrac = (hour+min/60.0+sec/3600.0)/24.0;\r\n    double d = dwhole+dfrac;\r\n\r\n    double GMST = 281.46061837+360.98564736629*d;\r\n    GMST = GMST-360*int(GMST/360);\r\n    if(GMST < 0)   GMST = 360.0 + GMST;\r\n\r\n    double t = GMST*PI/180.0;\r\n    return t;\r\n}\r\n\r\ndouble GMST2(double JD) {\r\n    int year, month, day, hour, min, sec;\r\n    now(year, month, day, hour, min, sec);\r\n    double M = ((((hour-3)*3600.0) + (min*60.0) + sec)/(12.0*3600.0));\r\n    double d = JD - 2451545.0;\r\n    double T = d/36525;\r\n    double S=1.7533685592 + 0.0172027918051 * d + 6.2831853072 * M + 6.7707139 * 0.000001 * T*T - 4.50876 * 0.0000000001 * T*T*T;\r\n    return S;\r\n}\r\n\r\n\r\nvoid ECEF2LLA(double x, double y, double z, double &latitude, double &longitude) {\r\n    latitude = atan(z/(sqrt(x*x + y*y)));\r\n    longitude = atan(y/x);\r\n    if(y<0 && x< 0){\r\n        longitude-=PI;\r\n    }\r\n    if(y>0 && x< 0){\r\n        longitude+=PI;\r\n    }\r\n}\r\n\r\nvoid LLA2ECEF(double &x, double &y, double &z, double latitude, double longitude, double r) {\r\n    x = r*cos(latitude)*cos(longitude);\r\n    y = r*cos(latitude)*sin(longitude);\r\n    z = r*sin(latitude);\r\n}\r\n\r\nsize_t WriteCallback(void* contents, size_t size, size_t nmemb, string* output) {\r\n    size_t totalSize = size * nmemb;\r\n    output->append(static_cast<char*>(contents), totalSize);\r\n    return totalSize;\r\n}\r\n\r\nvoid ECI2ECEF(double x, double y, double z,double S, double &X, double &Y, double &Z, bool CorV){\r\n    double W = 0.000072921151467;\r\n\r\n    double cos_s = cos(S);\r\n    double sin_s = sin(S);\r\n\r\n    X =  x * cos_s  + y * sin_s;\r\n    Y = -x * sin_s  + y * cos_s;\r\n    Z = z;\r\n\r\n    if(CorV == true)\r\n    {\r\n        X = X + W * Y;\r\n        Y = Y - W * X;\r\n    }\r\n}\r\n\r\nvoid writeInFile(string url, string outputFile){\r\n    CURL* curl;\r\n    CURLcode res;\r\n\r\n    curl_global_init(CURL_GLOBAL_DEFAULT);\r\n    curl = curl_easy_init();\r\n\r\n    if(curl) {\r\n        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());\r\n\r\n        // Отключение проверки SSL-сертификата\r\n        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);\r\n\r\n        string response;\r\n        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);\r\n        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);\r\n\r\n        res = curl_easy_perform(curl);\r\n\r\n        if(res != CURLE_OK)\r\n            fprintf(stderr, \"curl_easy_perform() failed: %s\\n\", curl_easy_strerror(res));\r\n        else {\r\n            ofstream outFile(outputFile.c_str());\r\n            outFile << response;\r\n            outFile.close();\r\n        }\r\n\r\n        curl_easy_cleanup(curl);\r\n    }\r\n    curl_global_cleanup();\r\n}\r\n\r\ndouble distance2MIEM(double x, double y, double z){\r\n    double x_MIEM = 2840.88, y_MIEM = 2172.78, z_MIEM = 5263.38;\r\n\r\n    double r=sqrt((x_MIEM-x)*(x_MIEM-x) + (y_MIEM-y)*(y_MIEM-y) + (z_MIEM-z)*(z_MIEM-z));\r\n    return r;\r\n\r\n}\r\n\r\ndouble Earth_height_in_point(double x, double y, double z){\r\n    double a = 6378.13649;\r\n    double b = 6356.75175;\r\n    double t = sqrt(1.0/((x*x + y*y)/(a*a)+(z*z)/(b*b)));\r\n    double r = t*sqrt(x*x+y*y+z*z);\r\n    return r;\r\n}\r\n\r\nvoid TLE_decoding(string ISS_TLE_1, string ISS_TLE_2 ){\r\n    auto sat = Satellite::from_tle(ISS_TLE_1, ISS_TLE_2);\r\n\r\n    int year, month, day, hour, minute, second;\r\n    now(year, month, day, hour, minute, second);\r\n    const auto t = JulianDate(DateTime { year, month, day, hour, minute, (double)second });\r\n    const double delta_days = t - sat.epoch();\r\n    StateVector sv;\r\n    const auto err = sat.propagate(t, sv);\r\n    const auto &ECI_pos = sv.position, &vel = sv.velocity;\r\n\r\n    double distant_to_center;\r\n    distant_to_center = sqrt(ECI_pos[0] * ECI_pos[0] + ECI_pos[1] * ECI_pos[1] + ECI_pos[2] * ECI_pos[2]);\r\n\r\n\r\n    double X, Y, Z;\r\n    double sideralT = GMST();\r\n    std::cout << \"GMST= \" << sideralT << std::endl;\r\n    cout << \"Position in  ECI [km]: { \" << ECI_pos[0] << \", \" << ECI_pos[1] << \", \" << ECI_pos[2] << \" }\\n\";\r\n\r\n    ECI2ECEF(ECI_pos[0], ECI_pos[1], ECI_pos[2], sideralT, X, Y, Z, false);\r\n    cout << \"Position in ECEF [km]: { \" << X << \", \" << Y << \", \" << Z << \" }\\n\";\r\n\r\n    double latitude, longitude;\r\n    ECEF2LLA(X, Y, Z, latitude, longitude);\r\n    double Earth_height = Earth_height_in_point(X, Y, Z);\r\n\r\n    cout << \"Position in LLA [deg]: { \" << latitude*180/PI << \", \" << longitude*180/PI << \" }\\n\";\r\n\r\n    double distance_to_the_ground = distant_to_center - Earth_height;\r\n    cout << \"Distance to the ground: \" << distance_to_the_ground << \" km\" << \"\\n\";\r\n    //cout << \"Speed in ECI [km/s]: { \" << vel[0] << \", \" << vel[1] << \", \" << vel[2] << \" }\\n\";\r\n    //cout << \"speed (abs): \" << speed << \"\\n\";\r\n    double r = distance2MIEM(X, Y, Z);\r\n    cout << \"Distance to MIEM = \" << r << \"km\" << endl;\r\n\r\n}\r\n\r\nvoid readFromFile(string fileName, vector<TLE>& data){\r\n    ifstream inputFile(fileName);\r\n    if (inputFile.is_open()) {\r\n        string name, line1, line2;\r\n        while (getline(inputFile, name) &&\r\n               getline(inputFile, line1) &&\r\n               getline(inputFile, line2)) {\r\n            TLE newTLE;\r\n            newTLE.satelliteName = name;\r\n            newTLE.line1 = line1;\r\n            newTLE.line2 = line2;\r\n            data.push_back(newTLE);\r\n\r\n            // Вывод данных после считывания\r\n            cout << endl;\r\n            cout << newTLE.satelliteName << endl;\r\n            cout << \"Line 1: \" << newTLE.line1 << endl;\r\n            cout << \"Line 2: \" << newTLE.line2 << endl;\r\n\r\n            // Вызов функции TLE_decoding с TLE-данными\r\n            TLE_decoding(newTLE.line1, newTLE.line2);\r\n        }\r\n        inputFile.close();\r\n    } else {\r\n        cerr << \"Unable to open the file.\" << endl;\r\n    }\r\n}\r\n\r\nint main() {\r\n    vector<TLE> data;\r\n\r\n    //Раскомментировать нужное:\r\n    //Запуски за последние 30 дней\r\n    //string url = \"https://celestrak.org/NORAD/elements/gp.php?GROUP=last-30-days&FORMAT=tle\";\r\n    //Космические станции\r\n    string url = \"https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=tle\";\r\n    //GOES\r\n    //string url = \"https://celestrak.org/NORAD/elements/gp.php?GROUP=goes&FORMAT=tle\";\r\n    //IRIDIUM\r\n    //string url = \"https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium-33-debris&FORMAT=tle\";\r\n\r\n    //writeInFile(url, \"output.txt\");\r\n    readFromFile(\"Space_stations.txt\", data);\r\n\r\n\r\n    return 0;\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Kursach/main.cpp b/Kursach/main.cpp
+--- a/Kursach/main.cpp	(revision d8a02dbc3495392475d147cdffa663cdcd8ae782)
++++ b/Kursach/main.cpp	(date 1715426787667)
+@@ -1,7 +1,7 @@
+ #include <iostream>
+ #include <fstream>
+ #include <string>
+-#include <curl/curl.h>
++//#include <curl/curl.h>
+ #include <vector>
+ #include <perturb/perturb.hpp>
+ #include <cmath>
+@@ -109,37 +109,37 @@
+     }
+ }
+ 
+-void writeInFile(string url, string outputFile){
+-    CURL* curl;
+-    CURLcode res;
+-
+-    curl_global_init(CURL_GLOBAL_DEFAULT);
+-    curl = curl_easy_init();
+-
+-    if(curl) {
+-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+-
+-        // Отключение проверки SSL-сертификата
+-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+-
+-        string response;
+-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+-
+-        res = curl_easy_perform(curl);
+-
+-        if(res != CURLE_OK)
+-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+-        else {
+-            ofstream outFile(outputFile.c_str());
+-            outFile << response;
+-            outFile.close();
+-        }
+-
+-        curl_easy_cleanup(curl);
+-    }
+-    curl_global_cleanup();
+-}
++//void writeInFile(string url, string outputFile){
++//    CURL* curl;
++//    CURLcode res;
++//
++//    curl_global_init(CURL_GLOBAL_DEFAULT);
++//    curl = curl_easy_init();
++//
++//    if(curl) {
++//        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
++//
++//        // Отключение проверки SSL-сертификата
++//        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
++//
++//        string response;
++//        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
++//        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
++//
++//        res = curl_easy_perform(curl);
++//
++//        if(res != CURLE_OK)
++//            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
++//        else {
++//            ofstream outFile(outputFile.c_str());
++//            outFile << response;
++//            outFile.close();
++//        }
++//
++//        curl_easy_cleanup(curl);
++//    }
++//    curl_global_cleanup();
++//}
+ 
+ double distance2MIEM(double x, double y, double z){
+     double x_MIEM = 2840.88, y_MIEM = 2172.78, z_MIEM = 5263.38;
+@@ -191,7 +191,7 @@
+     //cout << "Speed in ECI [km/s]: { " << vel[0] << ", " << vel[1] << ", " << vel[2] << " }\n";
+     //cout << "speed (abs): " << speed << "\n";
+     double r = distance2MIEM(X, Y, Z);
+-    cout << "Distance to MIEM = " << r << "km" << endl;
++    cout << "Distance to MIEM: " << r << " km" << endl;
+ 
+ }
+ 
+@@ -210,7 +210,7 @@
+ 
+             // Вывод данных после считывания
+             cout << endl;
+-            cout << newTLE.satelliteName << endl;
++            cout << "Name: " << newTLE.satelliteName << endl;
+             cout << "Line 1: " << newTLE.line1 << endl;
+             cout << "Line 2: " << newTLE.line2 << endl;
+ 
+@@ -223,7 +223,9 @@
+     }
+ }
+ 
+-int main() {
++int main(int argc, char *argv[]) {
++//    cout << 1 << endl;
++//    return 0;
+     vector<TLE> data;
+ 
+     //Раскомментировать нужное:
+@@ -237,7 +239,7 @@
+     //string url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium-33-debris&FORMAT=tle";
+ 
+     //writeInFile(url, "output.txt");
+-    readFromFile("Space_stations.txt", data);
++    readFromFile("D:/TLE_decoding/Kursach/cmake-build-debug/Space_Stations.txt", data);
+ 
+ 
+     return 0;
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"553f882b-e550-4ec8-84ba-f569d542329e\" name=\"Changes\" comment=\"\">\r\n      <change beforePath=\"$PROJECT_DIR$/Kursach/CMakeLists.txt\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/Kursach/CMakeLists.txt\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/Kursach/main.cpp\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/Kursach/main.cpp\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Python Script\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$/Kursach\" />\r\n    <option name=\"ROOT_SYNC\" value=\"SYNC\" />\r\n  </component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 2\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"2gCMmNzAfznrDUU90itFwbIWYaz\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\">{\r\n  &quot;keyToString&quot;: {\r\n    &quot;Python.main.executor&quot;: &quot;Run&quot;,\r\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\r\n    &quot;git-widget-placeholder&quot;: &quot;master&quot;,\r\n    &quot;last_opened_file_path&quot;: &quot;D:/TLE_decoding&quot;,\r\n    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,\r\n    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,\r\n    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,\r\n    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,\r\n    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,\r\n    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;\r\n  }\r\n}</component>\r\n  <component name=\"RunManager\">\r\n    <configuration name=\"main\" type=\"PythonConfigurationType\" factoryName=\"Python\" nameIsGenerated=\"true\">\r\n      <module name=\"TLE_decoding\" />\r\n      <option name=\"ENV_FILES\" value=\"\" />\r\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\r\n      <option name=\"PARENT_ENVS\" value=\"true\" />\r\n      <envs>\r\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\r\n      </envs>\r\n      <option name=\"SDK_HOME\" value=\"\" />\r\n      <option name=\"SDK_NAME\" value=\"Python 3.9\" />\r\n      <option name=\"WORKING_DIRECTORY\" value=\"D:\\TLE_decoding\" />\r\n      <option name=\"IS_MODULE_SDK\" value=\"false\" />\r\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\r\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\r\n      <EXTENSION ID=\"PythonCoverageRunConfigurationExtension\" runner=\"coverage.py\" />\r\n      <option name=\"SCRIPT_NAME\" value=\"$PROJECT_DIR$/main.py\" />\r\n      <option name=\"PARAMETERS\" value=\"\" />\r\n      <option name=\"SHOW_COMMAND_LINE\" value=\"false\" />\r\n      <option name=\"EMULATE_TERMINAL\" value=\"false\" />\r\n      <option name=\"MODULE_MODE\" value=\"false\" />\r\n      <option name=\"REDIRECT_INPUT\" value=\"false\" />\r\n      <option name=\"INPUT_FILE\" value=\"\" />\r\n      <method v=\"2\" />\r\n    </configuration>\r\n  </component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-PY-241.14494.241\" />\r\n        <option value=\"bundled-python-sdk-0509580d9d50-28c9f5db9ffe-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-241.14494.241\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"553f882b-e550-4ec8-84ba-f569d542329e\" name=\"Changes\" comment=\"\" />\r\n      <created>1715197266026</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1715197266026</updated>\r\n      <workItem from=\"1715197267407\" duration=\"1559000\" />\r\n      <workItem from=\"1715365879900\" duration=\"6182000\" />\r\n      <workItem from=\"1715419887511\" duration=\"9364000\" />\r\n      <workItem from=\"1715505699913\" duration=\"1833000\" />\r\n    </task>\r\n    <servers />\r\n  </component>\r\n  <component name=\"TypeScriptGeneratedFilesManager\">\r\n    <option name=\"version\" value=\"3\" />\r\n  </component>\r\n  <component name=\"com.intellij.coverage.CoverageDataManagerImpl\">\r\n    <SUITE FILE_PATH=\"coverage/TLE_decoding$main.coverage\" NAME=\"main Coverage Results\" MODIFIED=\"1715468997931\" SOURCE_PROVIDER=\"com.intellij.coverage.DefaultCoverageFileProvider\" RUNNER=\"coverage.py\" COVERAGE_BY_TEST_ENABLED=\"false\" COVERAGE_TRACING_ENABLED=\"false\" WORKING_DIRECTORY=\"D:\\TLE_decoding\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision d995f92b5252ed7627b90b7273adf0e3a9c258ec)
++++ b/.idea/workspace.xml	(date 1715635737439)
+@@ -5,6 +5,8 @@
+   </component>
+   <component name="ChangeListManager">
+     <list default="true" id="553f882b-e550-4ec8-84ba-f569d542329e" name="Changes" comment="">
++      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/Kursach" beforeDir="false" afterPath="$PROJECT_DIR$/Kursach" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/Kursach/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Kursach/CMakeLists.txt" afterDir="false" />
+       <change beforePath="$PROJECT_DIR$/Kursach/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Kursach/main.cpp" afterDir="false" />
+     </list>
+@@ -21,7 +23,7 @@
+     </option>
+   </component>
+   <component name="Git.Settings">
+-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/Kursach" />
++    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+     <option name="ROOT_SYNC" value="SYNC" />
+   </component>
+   <component name="ProjectColorInfo">{
+@@ -91,7 +93,8 @@
+       <workItem from="1715197267407" duration="1559000" />
+       <workItem from="1715365879900" duration="6182000" />
+       <workItem from="1715419887511" duration="9364000" />
+-      <workItem from="1715505699913" duration="1833000" />
++      <workItem from="1715505699913" duration="3498000" />
++      <workItem from="1715635346760" duration="386000" />
+     </task>
+     <servers />
+   </component>
+@@ -99,6 +102,6 @@
+     <option name="version" value="3" />
+   </component>
+   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+-    <SUITE FILE_PATH="coverage/TLE_decoding$main.coverage" NAME="main Coverage Results" MODIFIED="1715468997931" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="D:\TLE_decoding" />
++    <SUITE FILE_PATH="coverage/TLE_decoding$main.coverage" NAME="main Coverage Results" MODIFIED="1715635361666" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="D:\TLE_decoding" />
+   </component>
+ </project>
+\ No newline at end of file
