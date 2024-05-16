@@ -1,7 +1,6 @@
 import tkinter as tk
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-import cartopy.io.img_tiles as cimgt
 import subprocess
 
 
@@ -46,6 +45,11 @@ def read_satellite_data(output_lines):
 
 
 def plot_satellite_location(satellite_data, satellite_name):
+    if satellite_name not in satellite_data or 'LLA' not in satellite_data[satellite_name]:
+        print(f"Satellite data for {satellite_name} is not available.")
+        return
+    plt.close('all')
+
     plt.figure(figsize=(10, 8), facecolor='black')
     ax = plt.axes(projection=ccrs.Orthographic(central_longitude=satellite_data[satellite_name]['LLA'][1],
                                                central_latitude=satellite_data[satellite_name]['LLA'][0]))
@@ -74,7 +78,8 @@ def plot_satellite_location(satellite_data, satellite_name):
 def update_satellite_location():
     global satellite_data
     global satellite_name
-    output_lines = call_cpp_program("listAll")
+    category = category_option.get()
+    output_lines = call_cpp_program(category)
     satellite_data = read_satellite_data(output_lines)
     if satellite_name:
         plot_satellite_location(satellite_data, satellite_name)
@@ -86,10 +91,29 @@ def on_option_change(*args):
     satellite_name = selected_option.get()
     if satellite_name and satellite_name in satellite_data:
         plot_satellite_location(satellite_data, satellite_name)
+        # print("plotting" + satellite_name)
+
+
+def on_category_change(*args):
+    global satellite_data
+    global selected_option
+    category = category_option.get()
+    if category:
+        output_lines = call_cpp_program(category)
+        satellite_data = read_satellite_data(output_lines)
+        satellite_names = list(satellite_data.keys())
+        if satellite_names:
+            selected_option.set(satellite_names[0])
+            menu = satellite_menu['menu']
+            menu.delete(0, 'end')
+            for name in satellite_names:
+                menu.add_command(label=name, command=tk._setit(selected_option, name))
+            plot_satellite_location(satellite_data, satellite_names[0])
 
 
 def update_satellite_data():
-    call_cpp_program("update list")
+    category = category_option.get()
+    call_cpp_program(category)
 
 
 def main():
@@ -97,26 +121,37 @@ def main():
     global root
     global satellite_name
     global selected_option
+    global category_option
+    global satellite_menu
 
     root = tk.Tk()
     root.title('Satellite Location Viewer')
     root.geometry('300x200')
 
+    category_label = tk.Label(root, text='Select Category:')
+    category_label.pack()
+
+    categories = ["Space stations", "GOES", "Last 30 days", "IRIDIUM"]
+    category_option = tk.StringVar(root)
+    category_option.set(categories[0])  # Задание значения по умолчанию
+
+    category_menu = tk.OptionMenu(root, category_option, *categories)
+    category_menu.pack()
+
+    category_option.trace('w', on_category_change)
+
     label = tk.Label(root, text='Select Satellite:')
     label.pack()
 
     satellite_names = list(satellite_data.keys())
-
-    if not satellite_names:
-        label_no_data = tk.Label(root, text='No satellite data available.')
-        label_no_data.pack()
-        return
-
     selected_option = tk.StringVar(root)
-    selected_option.set(satellite_names[0])  # Задание значения по умолчанию
+    if satellite_names:
+        selected_option.set(satellite_names[0])  # Задание значения по умолчанию
+    else:
+        selected_option.set('')
 
-    option_menu = tk.OptionMenu(root, selected_option, *satellite_names)
-    option_menu.pack()
+    satellite_menu = tk.OptionMenu(root, selected_option, *satellite_names)
+    satellite_menu.pack()
 
     selected_option.trace('w', on_option_change)
 
@@ -128,8 +163,9 @@ def main():
 
 
 if __name__ == "__main__":
+    plt.close('all')
+
     output_lines = call_cpp_program("listAll")
-    print(output_lines)
     satellite_data = read_satellite_data(output_lines)
     satellite_name = None
     main()
