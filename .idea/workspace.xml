@@ -4,8 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="553f882b-e550-4ec8-84ba-f569d542329e" name="Changes" comment="Добавлен выбор спутника из выпадающего меню">
+    <list default="true" id="553f882b-e550-4ec8-84ba-f569d542329e" name="Changes" comment="Вывод и ввод перенесены в одно окно, вызов c++ программы происходит асинхронно">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GOES.txt" beforeDir="false" afterPath="$PROJECT_DIR$/GOES.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/IRIDIUM.txt" beforeDir="false" afterPath="$PROJECT_DIR$/IRIDIUM.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Last_30_days.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Last_30_days.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Space_Stations.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Space_Stations.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -111,6 +115,8 @@
       <workItem from="1715849937465" duration="4174000" />
       <workItem from="1715854199673" duration="50000" />
       <workItem from="1715854255882" duration="290000" />
+      <workItem from="1715890579105" duration="1298000" />
+      <workItem from="1715925969034" duration="6283000" />
     </task>
     <task id="LOCAL-00001" summary="Добавлено отображение траектории спутника и кнопка обновления TLE данных">
       <option name="closed" value="true" />
@@ -136,7 +142,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715850948047</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Вывод и ввод перенесены в одно окно, вызов c++ программы происходит асинхронно">
+      <option name="closed" value="true" />
+      <created>1715866534029</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1715866534029</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -146,9 +160,10 @@
     <MESSAGE value="Добавлено отображение траектории спутника и кнопка обновления TLE данных" />
     <MESSAGE value="Изменена библиотека отображения, улучшена производительность" />
     <MESSAGE value="Добавлен выбор спутника из выпадающего меню" />
-    <option name="LAST_COMMIT_MESSAGE" value="Добавлен выбор спутника из выпадающего меню" />
+    <MESSAGE value="Вывод и ввод перенесены в одно окно, вызов c++ программы происходит асинхронно" />
+    <option name="LAST_COMMIT_MESSAGE" value="Вывод и ввод перенесены в одно окно, вызов c++ программы происходит асинхронно" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/TLE_decoding$main.coverage" NAME="main Coverage Results" MODIFIED="1715866366242" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="D:\TLE_decoding" />
+    <SUITE FILE_PATH="coverage/TLE_decoding$main.coverage" NAME="main Coverage Results" MODIFIED="1715937108916" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="D:\TLE_decoding" />
   </component>
 </project>
