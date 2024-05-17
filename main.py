@@ -5,21 +5,21 @@ import subprocess
 import threading
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+satellite_data = {}
+satellite_name = None
 
 # Функция для вызова программы на C++
 def call_cpp_program(arg, callback):
     def run_program():
         try:
-            result = subprocess.run(['./Kursach/cmake-build-debug/Kursach.exe', arg], stdout=subprocess.PIPE,
-                                    check=True)
+            result = subprocess.run(['./Kursach/cmake-build-debug/Kursach.exe', arg], stdout=subprocess.PIPE, check=True)
             output_text = result.stdout.decode('utf-8')
             callback(output_text.split('\n'))
         except subprocess.CalledProcessError as e:
             print(f"Error calling C++ program: {e}")
             callback([])
 
-    threading.Thread(target=run_program).start()
-
+    threading.Thread(target=run_program, daemon=True).start()
 
 # Функция для чтения данных со спутника
 def read_satellite_data(output_lines):
@@ -30,13 +30,7 @@ def read_satellite_data(output_lines):
             satellite_name = line.split(':')[1].strip()
             satellite_data[satellite_name] = {'Trajectory': []}
         elif satellite_name:
-            if line.startswith('Position in  ECI'):
-                eci_position = line.split(':')[1].strip().strip('{}').split(',')
-                satellite_data[satellite_name]['ECI'] = [float(coord.strip()) for coord in eci_position]
-            elif line.startswith('Position in ECEF'):
-                ecef_position = line.split(':')[1].strip().strip('{}').split(',')
-                satellite_data[satellite_name]['ECEF'] = [float(coord.strip()) for coord in ecef_position]
-            elif line.startswith('Position in LLA'):
+            if line.startswith('Position in LLA'):
                 lla_position = line.split(':')[1].strip().strip('{}').split(',')
                 satellite_data[satellite_name]['LLA'] = [float(coord.strip()) for coord in lla_position]
             elif line.startswith('Trajectory in LLA'):
@@ -50,7 +44,6 @@ def read_satellite_data(output_lines):
                 distance_to_miem = float(line.split(':')[1].strip().split()[0])
                 satellite_data[satellite_name]['Distance to MIEM'] = distance_to_miem
     return satellite_data
-
 
 # Функция для отображения местоположения спутника
 def plot_satellite_location(satellite_data, satellite_name):
@@ -80,7 +73,6 @@ def plot_satellite_location(satellite_data, satellite_name):
     ax.set_title(f'{satellite_name}', color='white')
     canvas.draw()
 
-
 # Функция для отображения детальной информации о спутнике
 def display_satellite_info(satellite_data, satellite_name):
     if satellite_name not in satellite_data:
@@ -92,12 +84,11 @@ def display_satellite_info(satellite_data, satellite_name):
     if 'LLA' in info:
         info_text += f"Latitude: {info['LLA'][0]}° \nLongitude: {info['LLA'][1]}° \n"
     if 'Distance to the ground' in info:
-        info_text += f"Altitude: {info['Distance to the ground']} km\n"
+        info_text += f"Distance to the ground: {info['Distance to the ground']} km\n"
     if 'Distance to MIEM' in info:
         info_text += f"Distance to MIEM: {info['Distance to MIEM']} km\n"
 
     satellite_info_label.config(text=info_text)
-
 
 # Функция для обновления местоположения спутника
 def update_satellite_location():
@@ -114,7 +105,6 @@ def update_satellite_location():
 
     call_cpp_program(category_option.get(), on_data_received)
 
-
 # Обработчик изменения опции выбора спутника
 def on_option_change(*args):
     global satellite_name
@@ -122,7 +112,6 @@ def on_option_change(*args):
     if satellite_name and satellite_name in satellite_data:
         plot_satellite_location(satellite_data, satellite_name)
         display_satellite_info(satellite_data, satellite_name)
-
 
 # Обработчик изменения категории
 def on_category_change(*args):
@@ -148,12 +137,10 @@ def on_category_change(*args):
     if category:
         call_cpp_program(category, on_data_received)
 
-
 # Функция для обновления данных спутника
 def update_satellite_data():
     category = category_option.get()
-    call_cpp_program("update", lambda output_lines: satellite_data.update(read_satellite_data(output_lines)))
-
+    call_cpp_program(category, lambda output_lines: satellite_data.update(read_satellite_data(output_lines)))
 
 # Главная функция
 def main():
@@ -185,7 +172,7 @@ def main():
     category_label = tk.Label(left_frame, text='Select Category:')
     category_label.pack()
 
-    categories = ["Space stations", "GOES", "Last 30 days", "IRIDIUM", "R4uab"]
+    categories = ["Space stations", "GOES", "Last 30 days", "IRIDIUM"]
     category_option = tk.StringVar(root)
     category_option.set(categories[0])
 
@@ -197,20 +184,11 @@ def main():
     label = tk.Label(left_frame, text='Select Satellite:')
     label.pack()
 
-    satellite_names = list(satellite_data.keys())
     selected_option = tk.StringVar(root)
-    if satellite_names:
-        selected_option.set(satellite_names[0])
-    else:
-        selected_option.set('')
-
-    satellite_menu = tk.OptionMenu(left_frame, selected_option, *satellite_names)
+    satellite_menu = tk.OptionMenu(left_frame, selected_option, '')
     satellite_menu.pack()
 
     selected_option.trace('w', on_option_change)
-
-    update_button = tk.Button(left_frame, text='Update satellite data', command=update_satellite_data)
-    update_button.pack()
 
     satellite_info_label = tk.Label(left_frame, text='', justify=tk.LEFT, anchor='w')
     satellite_info_label.pack(fill=tk.BOTH, expand=True)
@@ -222,14 +200,5 @@ def main():
     update_satellite_location()
     root.mainloop()
 
-
 if __name__ == "__main__":
-    def on_initial_data_received(output_lines):
-        global satellite_data
-        global satellite_name
-        satellite_data = read_satellite_data(output_lines)
-        satellite_name = None
-        main()
-
-
-    call_cpp_program("listAll", on_initial_data_received)
+    main()
