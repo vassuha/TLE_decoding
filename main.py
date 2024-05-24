@@ -4,6 +4,7 @@ import cartopy.crs as ccrs
 import subprocess
 import threading
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import os
 
 satellite_data = {}
 satellite_name = None
@@ -101,7 +102,7 @@ def update_satellite_location():
         if satellite_name:
             plot_satellite_location(satellite_data, satellite_name)
             display_satellite_info(satellite_data, satellite_name)
-        root.after(5000, update_satellite_location)  # Schedule next update
+        root.after(5000, update_satellite_location)
 
     call_cpp_program(category_option.get(), on_data_received)
 
@@ -139,8 +140,7 @@ def on_category_change(*args):
 
 # Функция для обновления данных спутника
 def update_satellite_data():
-    category = category_option.get()
-    call_cpp_program(category, lambda output_lines: satellite_data.update(read_satellite_data(output_lines)))
+    call_cpp_program("update", lambda output_lines: satellite_data.update(read_satellite_data(output_lines)))
 
 # Главная функция
 def main():
@@ -154,6 +154,16 @@ def main():
     global canvas
     global fig
     global satellite_info_label
+
+    if os.path.exists("./IRIDIUM.txt") and os.path.exists("./Last_30_days.txt") and os.path.exists("./IRIDIUM.txt") and os.path.exists("./GOES.txt") and os.path.exists("./R4uab.txt") and os.path.exists("./Space_stations.txt"):
+        print("all files exist")
+    else:
+        update_satellite_data()
+
+    if os.path.exists("./R4uab.txt"):
+        print("R4uab exists")
+    else:
+        update_satellite_data()
 
     root = tk.Tk()
     root.title('Satellite Location Viewer')
@@ -172,7 +182,7 @@ def main():
     category_label = tk.Label(left_frame, text='Select Category:')
     category_label.pack()
 
-    categories = ["Space stations", "GOES", "Last 30 days", "IRIDIUM"]
+    categories = ["Space stations", "GOES", "Last 30 days", "IRIDIUM", "R4uab"]
     category_option = tk.StringVar(root)
     category_option.set(categories[0])
 
@@ -192,6 +202,10 @@ def main():
 
     satellite_info_label = tk.Label(left_frame, text='', justify=tk.LEFT, anchor='w')
     satellite_info_label.pack(fill=tk.BOTH, expand=True)
+
+    # Добавление кнопки обновления данных
+    update_button = tk.Button(left_frame, text="Update Data", command=update_satellite_data)
+    update_button.pack()
 
     fig = plt.figure(figsize=(10, 8), facecolor='black')
     canvas = FigureCanvasTkAgg(fig, master=right_frame)
